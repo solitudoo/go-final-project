@@ -18,7 +18,7 @@ func AddTask(task *Task) (int64, error) {
 		return 0, errors.New("database not initialized")
 	}
 
-	query := `
+	const query string = `
 		INSERT INTO scheduler (date, title, comment, repeat)
 		VALUES (?, ?, ?, ?)
 	`
@@ -75,14 +75,13 @@ func GetTask(id string) (*Task, error) {
 }
 
 func UpdateTask(task *Task) error {
-	// параметры пропущены, не забудьте указать WHERE
-	query := `UPDATE scheduler SET date=?, title=?, comment=?, repeat=? WHERE id=?`
+	
+	const query string = `UPDATE scheduler SET date=?, title=?, comment=?, repeat=? WHERE id=?`
 	res, err := db.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
 	if err != nil {
 		return err
 	}
-	// метод RowsAffected() возвращает количество записей к которым
-	// был применена SQL команда
+	
 	count, err := res.RowsAffected()
 	if err != nil {
 		return err
@@ -94,16 +93,23 @@ func UpdateTask(task *Task) error {
 }
 
 func DeleteTask(id string) error {
-	query := `DELETE FROM scheduler WHERE id=?`
-	_, err := db.Exec(query, id)
-	if err != nil {
-		return err
-	}
-	return nil
+    const query string = `DELETE FROM scheduler WHERE id=?`
+    res, err := db.Exec(query, id)
+    if err != nil {
+        return err
+    }
+    count, err := res.RowsAffected()
+    if err != nil {
+        return err
+    }
+    if count == 0 {
+        return fmt.Errorf("task not found")
+    }
+    return nil
 }
 
 func UpdateDate(next string, id string) error {
-	query := `UPDATE scheduler SET date=? WHERE id=?`
+	const query string = `UPDATE scheduler SET date=? WHERE id=?`
 	res, err := db.Exec(query, next, id)
 
 	if err != nil {

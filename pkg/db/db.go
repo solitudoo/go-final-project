@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS scheduler (
     date CHAR(8) NOT NULL DEFAULT "",
     title VARCHAR(128) NOT NULL DEFAULT "",
     comment TEXT NOT NULL DEFAULT "",
-    repeat VARCHAR(128) NOT NULL DEFAULT 0
+    repeat VARCHAR(128) NOT NULL DEFAULT ""
 );`
 
 func Init(dbFile string) error {
