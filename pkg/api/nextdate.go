@@ -13,8 +13,6 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	date = date.UTC()
-	now = now.UTC()
 	repeat = strings.TrimSpace(repeat)
 	if repeat == "" {
 		return "", errors.New("Неправильные данные")
@@ -35,41 +33,39 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		if interval <= 0 || interval > 400 {
 			return "", errors.New("Недопустимое значение")
 		}
-		if date.After(now) {
-			return date.Format("20060102"), nil
-		}
-		for {
+	
+		date = date.AddDate(0, 0, interval)
+	
+		for date.Before(now) || date.Equal(now) {
 			date = date.AddDate(0, 0, interval)
-			if date.After(now) {
-				break
-			}
 		}
 
 	case "y":
 		if len(array) != 1 {
 			return "", errors.New("Неправильные данные")
 		}
-		if date.After(now) {
-			return date.Format("20060102"), nil
-		}
-		for {
+		original := date
+		
+		date = date.AddDate(1, 0, 0)
+	
+		for date.Before(now) || date.Equal(now) {
 			date = date.AddDate(1, 0, 0)
-			if date.After(now) {
-				break
-			}
+		}
+		
+		if original.Month() == 2 && original.Day() == 29 && date.Day() == 28 {
+			date = date.AddDate(0, 0, 1) 
 		}
 	default:
 		return "", errors.New("Неправильные данные")
 	}
-
 	return date.Format("20060102"), nil
 
 }
 
 func nextDayHandler(res http.ResponseWriter, req *http.Request) {
-	nowStr := req.FormValue("now")
-	date := req.FormValue("date")
-	repeat := req.FormValue("repeat")
+	nowStr := req.URL.Query().Get("now")
+	date := req.URL.Query().Get("date")
+	repeat := req.URL.Query().Get("repeat")
 
 	var now time.Time
 	if nowStr == "" {

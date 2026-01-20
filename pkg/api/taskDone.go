@@ -19,9 +19,16 @@ func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSONError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		writeJSON(w, map[string]any{}, http.StatusOK)
+		return
 
 	}
-	next, err := NextDate(time.Now().UTC(), task.Date, task.Repeat)
+	parsedNow, err := time.Parse("20060102", task.Date)
+	if err != nil {
+		writeJSONError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	next, err := NextDate(parsedNow, task.Date, task.Repeat)
 	if err != nil {
 		writeJSONError(w, err.Error(), http.StatusInternalServerError)
 		return

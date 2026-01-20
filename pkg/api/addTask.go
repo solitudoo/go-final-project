@@ -14,8 +14,9 @@ func checkDate(task *db.Task) error {
 	now := time.Now()
 	today := now.Format("20060102")
 
-	if task.Date == "" || task.Date == "today" {
+	if task.Date == ""  {
 		task.Date = today
+		return nil
 	}
 
 	if _, err := time.Parse("20060102", task.Date); err != nil {
@@ -42,6 +43,7 @@ func checkDate(task *db.Task) error {
 
 	return nil
 }
+
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -132,7 +134,7 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 func putTaskHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
+	
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		writeJSONError(w, err.Error(), http.StatusInternalServerError)
@@ -171,10 +173,10 @@ func deleteTaskHandler(w http.ResponseWriter, r *http.Request){
 	}
 	err := db.DeleteTask(id)
 	if err != nil {
-		writeJSONError(w, "server Error", http.StatusInternalServerError)
-		return
+    	writeJSONError(w, err.Error(), http.StatusNotFound) 
+    	return
 	}
 	writeJSON(w, map[string]any{}, http.StatusOK)
 	return
 	
-}
+}  
