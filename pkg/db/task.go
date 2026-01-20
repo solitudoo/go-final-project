@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -13,17 +12,19 @@ type Task struct {
 	Repeat  string `json:"repeat"`
 }
 
-func AddTask(task *Task) (int64, error) {
-	if db == nil {
-		return 0, errors.New("database not initialized")
-	}
-
-	const query string = `
+const (
+	queryAdd = `
 		INSERT INTO scheduler (date, title, comment, repeat)
 		VALUES (?, ?, ?, ?)
 	`
+	queryUpdateTask = `UPDATE scheduler SET date=?, title=?, comment=?, repeat=? WHERE id=?`
+	queryDelete     = `DELETE FROM scheduler WHERE id=?`
+	queryUpdateDate = `UPDATE scheduler SET date=? WHERE id=?`
+)
 
-	res, err := db.Exec(query,
+func AddTask(task *Task) (int64, error) {
+
+	res, err := db.Exec(queryAdd,
 		task.Date,
 		task.Title,
 		task.Comment,
@@ -75,13 +76,11 @@ func GetTask(id string) (*Task, error) {
 }
 
 func UpdateTask(task *Task) error {
-	
-	const query string = `UPDATE scheduler SET date=?, title=?, comment=?, repeat=? WHERE id=?`
-	res, err := db.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
+	res, err := db.Exec(queryUpdateTask, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
 	if err != nil {
 		return err
 	}
-	
+
 	count, err := res.RowsAffected()
 	if err != nil {
 		return err
@@ -93,24 +92,23 @@ func UpdateTask(task *Task) error {
 }
 
 func DeleteTask(id string) error {
-    const query string = `DELETE FROM scheduler WHERE id=?`
-    res, err := db.Exec(query, id)
-    if err != nil {
-        return err
-    }
-    count, err := res.RowsAffected()
-    if err != nil {
-        return err
-    }
-    if count == 0 {
-        return fmt.Errorf("task not found")
-    }
-    return nil
+
+	res, err := db.Exec(queryDelete, id)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("task not found")
+	}
+	return nil
 }
 
 func UpdateDate(next string, id string) error {
-	const query string = `UPDATE scheduler SET date=? WHERE id=?`
-	res, err := db.Exec(query, next, id)
+	res, err := db.Exec(queryUpdateDate, next, id)
 
 	if err != nil {
 		return err
@@ -123,5 +121,4 @@ func UpdateDate(next string, id string) error {
 		return fmt.Errorf(`incorrect id for updating task`)
 	}
 	return nil
-
 }
